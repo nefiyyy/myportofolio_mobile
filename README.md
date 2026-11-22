@@ -11,3 +11,12 @@
 5. BuildContext adalah objek yang menunjukkan posisi suatu widget dalam Widget Tree. BuildContext penting karena digunakan untuk mengakses informasi seperti tema, ukuran layar, dan navigasi. Penggunaannya terdapat pada parameter metode build, yaitu build.
 
 6. Hot Reload adalah fitur untuk menerapkan perubahan kode tanpa mengulang aplikasi dari awal dan tetap mempertahankan state. Hot Restart menjalankan ulang aplikasi dari awal sehingga state direset. Hot Restart diperlukan ketika perubahan membutuhkan inisialisasi ulang, sedangkan Full Restart diperlukan jika terdapat perubahan pada kode native Android atau iOS.
+
+### Tugas 8
+1. Navigator.push() digunakan untuk membuka halaman baru, Navigator.pushReplacement() mengganti halaman saat ini, sedangkan Navigator.pop() digunakan untuk kembali ke halaman sebelumnya. Formulir dibuka menggunakan Navigator.push(), sementara tombol Home menggunakan Navigator.pop() untuk kembali ke halaman utama.
+
+2. Scaffold mengatur struktur halaman, AppBar menampilkan bagian atas halaman, dan Drawer menyediakan menu navigasi. Contohnya, warna utama portofolio digunakan secara konsisten pada AppBar dan tombol di setiap halaman.
+
+3. Tata letak formulir dibuat agar mudah dibaca dan digunakan. Widget Padding dan SizedBox mengatur jarak antar input, sedangkan SingleChildScrollView memungkinkan halaman digulir ketika layar terbatas.
+
+4. GlobalKey digunakan untuk mengelola dan memeriksa kondisi formulir, sedangkan validator dan validate() digunakan untuk memvalidasi input sebelum disimpan. Contohnya, nama yang hanya berisi spasi akan ditolak karena tidak dianggap sebagai nama yang valid. Validasi diperlukan karena papan ketik tidak dapat memastikan kebenaran data yang dimasukkan.
