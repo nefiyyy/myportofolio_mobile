@@ -163,7 +163,9 @@ class _CertificationFormPageState extends State<CertificationFormPage> {
                               Text("Nama: ${_name.trim()}"),
                               Text("Penerbit: ${_issuer.trim()}"),
                               Text("Tanggal: ${_formatDate(_issueDate!)}"),
-                              Text("Link: ${_link.trim().isEmpty ? '-' : _link.trim()}"),
+                              Text(
+                                "Link: ${_link.trim().isEmpty ? '-' : _link.trim()}",
+                              ),
                             ],
                           ),
                           actions: [

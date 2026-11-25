@@ -36,23 +36,31 @@ class ItemCard extends StatelessWidget {
             if (!context.mounted) return;
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
-              ..showSnackBar(SnackBar(
-                content: Text(wasLoggedIn ? 'Logged out' : 'Kamu belum login'),
-              ));
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(
+                    wasLoggedIn ? 'Logged out' : 'Kamu belum login',
+                  ),
+                ),
+              );
             return;
           }
 
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!")),
+              SnackBar(
+                content: Text("Kamu telah menekan tombol ${item.name}!"),
+              ),
             );
 
           // Tambah Certification
           if (name.contains('certification')) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CertificationFormPage()),
+              MaterialPageRoute(
+                builder: (context) => const CertificationFormPage(),
+              ),
             );
             return;
           }
@@ -73,7 +81,9 @@ class ItemCard extends StatelessWidget {
           if (name.contains('project')) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const ProjectListScreen()),
+              MaterialPageRoute(
+                builder: (context) => const ProjectListScreen(),
+              ),
             );
           }
         },

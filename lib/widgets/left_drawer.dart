@@ -55,7 +55,9 @@ class LeftDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const ProjectListScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const ProjectListScreen(),
+                ),
               );
             },
           ),
@@ -67,7 +69,9 @@ class LeftDrawer extends StatelessWidget {
               if (!ok || !context.mounted) return;
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const ProjectFormPage()),
+                MaterialPageRoute(
+                  builder: (context) => const ProjectFormPage(),
+                ),
               );
             },
           ),
@@ -101,9 +105,8 @@ class LeftDrawer extends StatelessWidget {
               onTap: () async {
                 await context.read<AuthState>().logout();
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Logged out')),
-                );
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('Logged out')));
               },
             ),
         ],

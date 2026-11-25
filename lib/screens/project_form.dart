@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:myportofolio_mobile/models/project.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
+import 'package:myportofolio_mobile/services/auth_state.dart';
+import 'package:myportofolio_mobile/widgets/auth_guard.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:provider/provider.dart';
 
 class ProjectFormPage extends StatefulWidget {
   const ProjectFormPage({super.key});
@@ -11,19 +16,98 @@ class ProjectFormPage extends StatefulWidget {
 class _ProjectFormPageState extends State<ProjectFormPage> {
   final _formKey = GlobalKey<FormState>();
 
-  String _projectName = "";
-  String _description = "";
-  String _category = "Web Development";
-  String _technologies = "";
-  String _projectLink = "";
+  String _title = '';
+  String _description = '';
+  String _techStack = '';
+  String _projectUrl = '';
+  String _projectImageUrl = '';
+  bool _isSubmitting = false;
 
-  final List<String> _categories = [
-    'Web Development',
-    'Mobile Development',
-    'Data Science',
-    'UI/UX Design',
-    'Other',
-  ];
+  bool _isValidUrl(String value) {
+    final uri = Uri.tryParse(value);
+    return uri != null && uri.hasScheme && uri.host.isNotEmpty;
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final ok = await ensureLoggedIn(context);
+    if (!ok || !mounted) return;
+
+    final token = context.read<AuthState>().token!;
+    final newProject = Project(
+      title: _title,
+      description: _description,
+      techStack: _techStack,
+      projectUrl: _projectUrl,
+      projectImageUrl: _projectImageUrl,
+    );
+
+    setState(() => _isSubmitting = true);
+    try {
+      final created = await context.read<ApiClient>().createProject(
+        newProject,
+        token: token,
+      );
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Project saved successfully!'),
+          content: Text(
+            'Title: ${created.title}\nTech Stack: ${created.techStack}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      _formKey.currentState!.reset();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 401) {
+        await context.read<AuthState>().logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session expired, please login again.')),
+        );
+        await ensureLoggedIn(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save project (${e.statusCode})')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Widget _field({
+    required String label,
+    required ValueChanged<String> onChanged,
+    String? Function(String?)? validator,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextFormField(
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          hintText: label,
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+        ),
+        onChanged: onChanged,
+        validator: validator,
+      ),
+    );
+  }
+
+  String? _required(String? value, String name) =>
+      (value == null || value.isEmpty) ? '$name cannot be empty!' : null;
 
   @override
   Widget build(BuildContext context) {
@@ -40,167 +124,62 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Nama Project
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Project Name",
-                    labelText: "Project Name",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _projectName = value!;
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Project name cannot be empty!";
-                    }
-                    return null;
-                  },
-                ),
+              _field(
+                label: 'Title',
+                onChanged: (v) => _title = v,
+                validator: (v) => _required(v, 'Title'),
               ),
-
-              // Deskripsi
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: "Project Description",
-                    labelText: "Project Description",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _description = value!;
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return "Description cannot be empty!";
-                    }
-                    return null;
-                  },
-                ),
+              _field(
+                label: 'Description',
+                maxLines: 5,
+                onChanged: (v) => _description = v,
+                validator: (v) => _required(v, 'Description'),
               ),
-
-              // Kategori
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: "Category",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  initialValue: _category,
-                  items: _categories
-                      .map((cat) => DropdownMenuItem(
-                            value: cat,
-                            child: Text(cat),
-                          ))
-                      .toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _category = newValue!;
-                    });
-                  },
-                ),
+              _field(
+                label: 'Tech Stack',
+                onChanged: (v) => _techStack = v,
+                validator: (v) => _required(v, 'Tech Stack'),
               ),
-
-              // Teknologi
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Technologies (e.g. Flutter, Django)",
-                    labelText: "Technologies",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _technologies = value!;
-                    });
-                  },
-                ),
+              _field(
+                label: 'Project URL',
+                onChanged: (v) => _projectUrl = v,
+                validator: (v) {
+                  final empty = _required(v, 'Project URL');
+                  if (empty != null) return empty;
+                  return _isValidUrl(v!)
+                      ? null
+                      : 'Enter a valid URL (https://...)';
+                },
               ),
-
-              // Link
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Project Link (optional)",
-                    labelText: "Project Link",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _projectLink = value!;
-                    });
-                  },
-                ),
+              _field(
+                label: 'Project Image URL (Optional)',
+                onChanged: (v) => _projectImageUrl = v,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return null;
+                  return _isValidUrl(v)
+                      ? null
+                      : 'Enter a valid URL (https://...)';
+                },
               ),
-
-              // Tombol Save
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor:
-                          WidgetStateProperty.all(Colors.indigo),
+                      backgroundColor: WidgetStateProperty.all(Colors.indigo),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Project saved successfully!'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Name: $_projectName'),
-                                    Text('Description: $_description'),
-                                    Text('Category: $_category'),
-                                    Text('Technologies: $_technologies'),
-                                    Text('Link: $_projectLink'),
-                                  ],
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _formKey.currentState!.reset();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
-                    child: const Text(
-                      "Save",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    onPressed: _isSubmitting ? null : _submit,
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Save',
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
                 ),
               ),

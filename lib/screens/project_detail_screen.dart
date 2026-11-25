@@ -19,8 +19,10 @@ class ProjectDetailScreen extends StatelessWidget {
               Image.network(project.projectImageUrl),
               const SizedBox(height: 16),
             ],
-            Text(project.title,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(
+              project.title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text('Tech Stack: ${project.techStack}'),
             const SizedBox(height: 8),

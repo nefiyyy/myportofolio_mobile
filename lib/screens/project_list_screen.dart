@@ -86,7 +86,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
               itemBuilder: (context, index) {
                 final project = projects[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   child: ListTile(
                     title: Text(project.title),
                     subtitle: Text(

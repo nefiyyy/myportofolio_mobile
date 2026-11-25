@@ -16,7 +16,7 @@ class ApiException implements Exception {
 
 class ApiClient {
   ApiClient({http.Client? client, this.baseUrl = apiBaseUrl})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final String baseUrl;
@@ -36,7 +36,10 @@ class ApiClient {
         .toList();
   }
 
-  Future<Project> createProject(Project project, {required String token}) async {
+  Future<Project> createProject(
+    Project project, {
+    required String token,
+  }) async {
     final response = await _client.post(
       _uri('/api/v1/projects/'),
       headers: {
